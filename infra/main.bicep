@@ -483,13 +483,13 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.12.0' = {
   }
 }
 
-module containerApps 'br/public:avm/ptn/azd/container-apps-stack:0.1.1' = {
+module containerApps 'br/public:avm/ptn/azd/container-apps-stack:0.4.0' = {
   name: 'container-apps'
   scope: resourceGroup
   params: {
     containerAppsEnvironmentName: '${abbrs.appManagedEnvironments}${resourceToken}'
     containerRegistryName: '${abbrs.containerRegistryRegistries}${resourceToken}'
-    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
+    logAnalyticsWorkspaceName: last(split(monitoring.outputs.logAnalyticsWorkspaceResourceId, '/'))
     appInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
     acrSku: 'Basic'
     location: location
@@ -508,7 +508,7 @@ module pizzaMcpIdentity 'br/public:avm/res/managed-identity/user-assigned-identi
   }
 }
 
-module pizzaMcpContainerApp 'br/public:avm/ptn/azd/container-app-upsert:0.1.2' = {
+module pizzaMcpContainerApp 'br/public:avm/ptn/azd/container-app-upsert:0.4.0' = {
   name: 'pizza-mcp-container-app'
   scope: resourceGroup
   params: {

@@ -495,6 +495,7 @@ module containerApps 'br/public:avm/ptn/azd/container-apps-stack:0.4.0' = {
     location: location
     acrAdminUserEnabled: true
     zoneRedundant: false
+    publicNetworkAccess: 'Enabled'
     tags: tags
   }
 }

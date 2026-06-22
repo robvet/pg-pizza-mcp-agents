@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>One Backend, Two Interfaces — REST vs. MCP</title>
+<script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("clawpilotTheme");
+    const theme = param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<style>
+:root {
+  color-scheme: light;
+  --cp-bg: #f7f4ef; --cp-bg-elevated: #fcfbf8; --cp-surface: #ffffff; --cp-surface-soft: #f5f5f5;
+  --cp-border: #dedede; --cp-border-strong: #919191; --cp-text: #242424; --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f; --cp-accent: #b11f4b; --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177,31,75,0.08); --cp-accent-fg: #ffffff; --cp-success: #16a34a;
+  --cp-danger: #dc2626; --cp-warning: #f59e0b; --cp-link: #0078d4;
+  --cp-shadow: 0 18px 48px rgba(0,0,0,0.12); --cp-highlight: rgba(177,31,75,0.12);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --cp-bg: #3d3b3a; --cp-bg-elevated: #343231; --cp-surface: #292929; --cp-surface-soft: #2e2e2e;
+  --cp-border: #474747; --cp-border-strong: #5f5f5f; --cp-text: #dedede; --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0; --cp-accent: #fd8ea1; --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253,142,161,0.14); --cp-accent-fg: #1a1a1a; --cp-success: #4ade80;
+  --cp-danger: #f87171; --cp-warning: #fbbf24; --cp-link: #4da6ff;
+  --cp-shadow: 0 18px 48px rgba(0,0,0,0.32); --cp-highlight: rgba(253,142,161,0.12);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; background: var(--cp-bg); color: var(--cp-text);
+  font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.slide {
+  width: min(1160px, 100%); aspect-ratio: 16/9; background: var(--cp-surface);
+  border: 1px solid var(--cp-border); border-radius: 16px; box-shadow: var(--cp-shadow);
+  padding: 34px 44px; display: flex; flex-direction: column; gap: 18px; overflow: hidden;
+}
+.kicker { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--cp-accent); font-weight: 700; }
+h1 { margin: 2px 0 0; font-size: 30px; line-height: 1.15; }
+.lead { margin: 0; color: var(--cp-text-muted); font-size: 15px; }
+.body { display: grid; grid-template-columns: 1.05fr 1fr; gap: 22px; flex: 1; min-height: 0; }
+.diagram { display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.flow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+.node {
+  border: 1px solid var(--cp-border); border-radius: 12px; padding: 10px 12px;
+  background: var(--cp-surface-soft); text-align: center;
+}
+.node .t { font-weight: 700; font-size: 14px; }
+.node .s { font-size: 11px; color: var(--cp-text-muted); }
+.node.rest { border-color: var(--cp-link); }
+.node.mcp { border-color: var(--cp-success); }
+.node.data { border-color: var(--cp-border-strong); background: var(--cp-bg-elevated); }
+.arrow { font-size: 12px; color: var(--cp-text-soft); text-align: center; white-space: nowrap; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--cp-border); }
+th { color: var(--cp-text-soft); font-weight: 700; }
+td code { font-family: Consolas, "Courier New", monospace; font-size: 11px; }
+.rest-txt { color: var(--cp-link); }
+.mcp-txt { color: var(--cp-success); }
+.notes { font-size: 12px; color: var(--cp-text-muted); }
+.notes li { margin: 3px 0; }
+.legend { display: flex; gap: 16px; font-size: 11px; color: var(--cp-text-muted); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.dot.rest { background: var(--cp-link); }
+.dot.mcp { background: var(--cp-success); }
+</style>
+</head>
+<body>
+<main class="slide">
+  <div>
+    <div class="kicker">Pizza MCP Demo · Architecture</div>
+    <h1>One Backend, Two Interfaces — REST vs. MCP</h1>
+    <p class="lead">Same pizza data, exposed two ways. REST serves apps; MCP serves AI agents. MCP is a thin facade over REST — no second data store.</p>
+  </div>
+
+  <div class="body">
+    <section class="diagram">
+      <div class="flow">
+        <div class="node"><div class="t">pizza-webapp</div><div class="s">browser app</div></div>
+        <div class="arrow">— REST →</div>
+        <div class="node rest"><div class="t">pizza-api</div><div class="s">REST · Azure Functions</div></div>
+      </div>
+      <div class="flow">
+        <div class="node"><div class="t">LLM agent</div><div class="s">MCP client</div></div>
+        <div class="arrow">— MCP →</div>
+        <div class="node mcp"><div class="t">pizza-mcp</div><div class="s">MCP · Express facade</div></div>
+      </div>
+      <div class="arrow">pizza-mcp — REST over HTTP → pizza-api → <strong>Data store</strong></div>
+      <div class="legend">
+        <span><span class="dot rest"></span>REST (apps)</span>
+        <span><span class="dot mcp"></span>MCP (agents)</span>
+      </div>
+    </section>
+
+    <section class="stack">
+      <table>
+        <thead><tr><th>Capability</th><th class="rest-txt">REST</th><th class="mcp-txt">MCP tool</th></tr></thead>
+        <tbody>
+          <tr><td>List pizzas</td><td><code>GET /api/pizzas</code></td><td><code>get_pizzas</code></td></tr>
+          <tr><td>Get pizza</td><td><code>GET /api/pizzas/{id}</code></td><td><code>get_pizza_by_id</code></td></tr>
+          <tr><td>List toppings</td><td><code>GET /api/toppings</code></td><td><code>get_toppings</code></td></tr>
+          <tr><td>List orders</td><td><code>GET /api/orders</code></td><td><code>get_orders</code></td></tr>
+          <tr><td>Place order</td><td><code>POST /api/orders</code></td><td><code>place_order</code></td></tr>
+          <tr><td>Cancel order</td><td><code>DELETE /api/orders/{id}</code></td><td><code>delete_order_by_id</code></td></tr>
+        </tbody>
+      </table>
+      <ul class="notes">
+        <li><strong>One source of truth:</strong> pizza-api owns data &amp; logic; pizza-mcp stores nothing.</li>
+        <li><strong>Contract per audience:</strong> OpenAPI for HTTP clients, Zod tool schemas for LLMs.</li>
+        <li><strong>Adapter pattern:</strong> MCP delegates to an injected REST client.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+</body>
+</html>
